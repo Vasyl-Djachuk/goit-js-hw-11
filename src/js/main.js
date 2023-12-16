@@ -1,11 +1,25 @@
 'use strict';
+let indexImage = 0;
+let objectFromServer;
 import iziToast from 'izitoast';
 import SimpleLightbox from 'simplelightbox';
 import 'simplelightbox/dist/simple-lightbox.min.css';
 const gallery = document.querySelector(`.gallery`);
+const loader = document.querySelector(`.loader`);
+loader.classList.remove(`loader`);
 
 const form = document.querySelector(`.form`);
 form.addEventListener(`submit`, formSearch);
+// ------------------
+document
+  .querySelector(`.page-section`)
+  .insertAdjacentHTML(
+    'beforeend',
+    `<button class="download-more">Download more</button>`
+  );
+const buttonMoreImages = document.querySelector(`.download-more`);
+buttonMoreImages.addEventListener(`click`, downloadsMoreImages);
+// -----------------
 
 function formSearch(event) {
   event.preventDefault();
@@ -19,13 +33,18 @@ function formSearch(event) {
     });
     return;
   }
+
   form.reset();
+  gallery.innerHTML = ``;
+  loader.classList.add(`loader`);
+
   const parameters = new URLSearchParams({
     key: `41274788-792c8d92905fcf9da75194117`,
     q: `${userText}`,
     image_type: `photo`,
     orientation: `horizontal`,
-    // safesearch: `true`,
+    safesearch: `true`,
+    per_page: 100,
   }).toString();
 
   const urlSearch = `https://pixabay.com/api/?${parameters}`;
@@ -39,12 +58,14 @@ function formSearch(event) {
     })
     .then(answerFromServer => {
       if (answerFromServer.hits.length === 0) {
+        loader.classList.remove(`loader`);
         iziToast.show({
           message:
             '❌ Sorry, there are no images matching your search query. Please try again!',
           position: `topLeft`,
           color: `red`,
         });
+        buttonMoreImages.classList.remove(`is-visibal`);
         return;
       }
       galleryCreate(answerFromServer.hits);
@@ -53,10 +74,37 @@ function formSearch(event) {
       console.log(error);
     });
 }
-// const timeId = setTimeout();
+// --------------------------------
 function galleryCreate(imageArrow) {
+  indexImage = 0;
+  objectFromServer = imageArrow;
+  let displayImage = imageArrow.slice(indexImage, indexImage + 20);
+  loader.classList.remove(`loader`);
+  gallery.insertAdjacentHTML('afterbegin', addImages(displayImage));
+  galleryModal.refresh();
+
+  if (imageArrow.length >= 21) {
+    buttonMoreImages.classList.add(`is-visibal`);
+  }
+}
+// ----------------------------------
+
+function downloadsMoreImages() {
+  indexImage += 20;
+
+  gallery.insertAdjacentHTML(
+    'beforeend',
+    addImages(objectFromServer.slice(indexImage, indexImage + 20))
+  );
+  if (indexImage + 21 >= objectFromServer.length) {
+    buttonMoreImages.classList.remove(`is-visibal`);
+  }
+  galleryModal.refresh();
+}
+
+function addImages(arrow) {
   let listCode = ``;
-  imageArrow.forEach(image => {
+  arrow.forEach(image => {
     const {
       webformatURL,
       largeImageURL,
@@ -91,28 +139,11 @@ function galleryCreate(imageArrow) {
           </a>
         </li>`;
   });
-
-  gallery.insertAdjacentHTML('afterbegin', listCode);
+  return listCode;
 }
+// ------------------------
 
-// let listCode = ``;
-// for (const img of images) {
-//   listCode += `<li><img src="${img.url}" alt="${img.alt}" width="360" height="300"></li>`;
-// }
-// document.querySelector(`.gallery`).insertAdjacentHTML('afterbegin', listCode);
-
-//  const item = document.createElement(`li`);
-//  item.classList.add('gallery-item');
-
-//  const galleryImage = document.createElement(`img`);
-//  galleryImage.classList.add('gallery-image');
-//  galleryImage.src = preview;
-//  galleryImage.alt = alt;
-
-//  const link = document.createElement(`a`);
-//  link.classList.add(`gallery-link`);
-//  link.href = original;
-
-//  link.append(galleryImage);
-//  item.append(link);
-//  items.push(item);
+const galleryModal = new SimpleLightbox('.gallery .link', {
+  captionsData: `alt`,
+  captionDelay: 250,
+});
