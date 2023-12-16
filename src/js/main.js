@@ -28,7 +28,7 @@ function formSearch(event) {
   if (userText === ``) {
     iziToast.show({
       message: '❌ Field must be filled in',
-      position: `topLeft`,
+      position: `topRight`,
       color: `red`,
     });
     return;
@@ -62,7 +62,7 @@ function formSearch(event) {
         iziToast.show({
           message:
             '❌ Sorry, there are no images matching your search query. Please try again!',
-          position: `topLeft`,
+          position: `topRight`,
           color: `red`,
         });
         buttonMoreImages.classList.remove(`is-visibal`);
