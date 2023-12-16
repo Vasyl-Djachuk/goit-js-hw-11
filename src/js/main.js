@@ -36,6 +36,7 @@ function formSearch(event) {
 
   form.reset();
   gallery.innerHTML = ``;
+  buttonMoreImages.classList.remove(`is-visibal`);
   loader.classList.add(`loader`);
 
   const parameters = new URLSearchParams({
